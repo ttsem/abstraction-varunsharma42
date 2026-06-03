@@ -1,50 +1,65 @@
 using System;
 
-public interface IDevice
+public interface IPrinter
 {
-    void Execute();
+    void Print();
 }
 
-public class Printer : IDevice
+public interface IScanner
 {
-    public void Execute()
+    void Scan();
+}
+
+public class Printer : IPrinter
+{
+    public void Print()
     {
         Console.WriteLine("Printing document...");
     }
 }
 
-public class Scanner : IDevice
+public class Scanner : IScanner
 {
-    public void Execute()
+    public void Scan()
     {
         Console.WriteLine("Scanning document...");
     }
 }
 
-public class Task
+public class PrintScanner : IPrinter, IScanner
 {
-    public int TaskId { get; }
-    public IDevice Device { get; }
+    private readonly IPrinter _printer;
+    private readonly IScanner _scanner;
 
-    public Task(int taskId, IDevice device)
+    public PrintScanner(IPrinter printer, IScanner scanner)
     {
-        TaskId = taskId;
-        Device = device ?? throw new ArgumentNullException(nameof(device));
+        _printer = printer ?? throw new ArgumentNullException(nameof(printer));
+        _scanner = scanner ?? throw new ArgumentNullException(nameof(scanner));
     }
 
-    public void Run()
+    public void Print()
     {
-        Console.WriteLine($"Executing Task: {TaskId}");
-        Device.Execute();
+        _printer.Print();
+    }
+
+    public void Scan()
+    {
+        _scanner.Scan();
     }
 }
 
 public class TaskManager
 {
-    public void RunTask(Task task)
+    public void PrintTask(int taskId, IPrinter printer)
     {
-        if (task == null) throw new ArgumentNullException(nameof(task));
-        task.Run();
+        Console.WriteLine($"Executing Print Task: {taskId}");
+        printer.Print();
+    }
+
+    public void ScanTask(int taskId, IScanner scanner)
+    {
+        Console.WriteLine($"Executing Scan Task: {taskId}");
+        scanner.Scan();
     }
 }
 
@@ -54,10 +69,11 @@ public class Program
     {
         var printer = new Printer();
         var scanner = new Scanner();
+        var printScanner = new PrintScanner(printer, scanner);
 
-        var manager = new TaskManager();
+        var scheduler = new TaskManager();
 
-        manager.RunTask(new Task(101, printer));
-        manager.RunTask(new Task(102, scanner));
+        scheduler.PrintTask(101, printScanner);
+        scheduler.ScanTask(102, printScanner);
     }
 }
